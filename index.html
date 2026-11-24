@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hub de Indicadores da Produção · demo</title>
+<style>
+:root{--bg:#0b0f17;--sf:#121826;--sf2:#182033;--ln:#243049;--ink:#e8edf7;--ink2:#9aa6bd;--ink3:#6b7790;--ac:#5b8cff;--ok:#2bd18a;--wa:#f5b942;--bad:#ff5c5c;--prog:#c0703a;--real:#2bd18a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 Inter,system-ui,Segoe UI,Roboto,sans-serif}
+header{border-bottom:1px solid var(--ln);background:var(--sf)}
+.wrap{max-width:1200px;margin:0 auto;padding:0 16px}
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:14px 0}
+.top h1{font-size:19px;margin:0}.tag{font-size:11.5px;color:var(--wa);border:1px solid color-mix(in srgb,var(--wa) 40%,transparent);border-radius:999px;padding:3px 10px}
+.top .sp{flex:1}.top select{background:var(--sf2);color:var(--ink);border:1px solid var(--ln);border-radius:8px;padding:6px 10px;font:inherit}
+nav{display:flex;gap:4px;overflow:auto;padding-bottom:10px}nav button{background:none;border:0;color:var(--ink2);font:600 14px inherit;padding:8px 12px;border-radius:8px;cursor:pointer;white-space:nowrap}
+nav button.on{background:var(--sf2);color:var(--ink)}
+main{padding:18px 0 40px}h2{font-size:22px;margin:4px 0 4px}.sub{color:var(--ink2);margin:0 0 16px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:16px}
+.k{background:var(--sf);border:1px solid var(--ln);border-radius:14px;padding:12px 14px}.k small{color:var(--ink3);font-size:11px;letter-spacing:.06em;text-transform:uppercase}.k b{display:block;font-size:26px;margin-top:2px}.k span{color:var(--ink2);font-size:12px}
+.card{background:var(--sf);border:1px solid var(--ln);border-radius:16px;padding:14px 16px;margin-bottom:14px}.card h3{margin:0 0 4px;font-size:15px}.card p{margin:0 0 10px;color:var(--ink2);font-size:12.5px}
+svg text{fill:var(--ink2);font-size:11px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:820px){.grid2{grid-template-columns:1fr}}
+table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;color:var(--ink3);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--ln)}td{padding:7px 8px;border-bottom:1px solid var(--ln)}td.n{text-align:right;font-variant-numeric:tabular-nums}
+.pill{display:inline-block;border-radius:999px;padding:2px 9px;font-size:11.5px;font-weight:700}.g{background:#123b2b;color:var(--ok)}.w{background:#3d3012;color:var(--wa)}.r{background:#3d1717;color:var(--bad)}
+.bar{height:8px;border-radius:99px;background:var(--sf2);overflow:hidden}.bar i{display:block;height:100%;border-radius:99px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}.chips button{background:var(--sf2);border:1px solid var(--ln);color:var(--ink2);border-radius:999px;padding:5px 12px;font:600 12.5px inherit;cursor:pointer}.chips button.on{background:var(--ac);border-color:var(--ac);color:#fff}
+.row{display:grid;grid-template-columns:150px 1fr;gap:10px;align-items:center;padding:6px 0;border-bottom:1px dashed var(--ln)}.row b{font-size:13px}.row small{display:block;color:var(--ink3);font-size:11px}
+.trk{position:relative;height:34px;overflow:hidden;background:linear-gradient(90deg,var(--ln) 1px,transparent 1px) 0 0/calc(100%/24) 100%;border-radius:6px}
+.trk i{position:absolute;height:12px;border-radius:4px}.trk i.p{top:3px;background:var(--prog)}.trk i.a{top:19px;background:var(--real)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--ink2);margin-top:8px}.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+footer{color:var(--ink3);font-size:12px;text-align:center;padding:20px}
+.ia{display:flex;gap:8px}.ia input{flex:1;background:var(--sf2);border:1px solid var(--ln);border-radius:10px;color:var(--ink);padding:9px 12px;font:inherit}.ia button{background:var(--ac);border:0;color:#fff;border-radius:10px;padding:0 16px;font:600 14px inherit;cursor:pointer}
+.resp{margin-top:10px;background:var(--sf2);border-radius:12px;padding:10px 12px;white-space:pre-wrap;color:var(--ink);font-size:13px;min-height:42px}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <div class="top"><h1>Hub de Indicadores da Produção</h1><span class="tag">Demonstração · dados 100% fictícios</span><span class="sp"></span>
+    <label style="color:var(--ink2);font-size:12px">Líder <select id="fLid"></select></label></div>
+  <nav id="nav"></nav>
+</div></header>
+<main class="wrap" id="view"></main>
+<footer>Demonstração criada por Guilherme Lincoln com dados gerados aleatoriamente. Nenhum dado real de empresa é usado nesta página.</footer>
+<script>
+// ---------- dados fictícios (gerador com semente fixa: sempre os mesmos números) ----------
+let seed=42;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+const BUS=["Fluidos","Estrutural","Escapamento"];
+const LIDERES={"Fluidos":["Ana","Bruno"],"Estrutural":["Carla"],"Escapamento":["Diego"]};
+const TIPOS=["Serra","Curvadora","Prensa","Célula de solda","Robô","Conformadora"];
+const M=[];let n=1;
+for(const bu of BUS)for(let i=0;i<(bu==="Fluidos"?9:6);i++){const t=TIPOS[Math.floor(rnd()*TIPOS.length)];const cap=[8,8,16,16,21][Math.floor(rnd()*5)];
+  const L=LIDERES[bu];M.push({id:`${t} ${String(n++).padStart(2,"0")}`,bu,cap,lider:L[0],lider2:cap>8&&L[1]?L[1]:null})}
+const MESES=["nov","dez","jan","fev","mar","abr"],DIAS=[20,10,21,20,22,22];
+M.forEach(m=>{m.carga=MESES.map((_,i)=>m.cap*DIAS[i]*(0.45+rnd()*0.75*(i<2?1.15:0.85)))});
+const HOJE=18;const DIA=[...Array(HOJE)].map((_,d)=>d+1);
+M.forEach(m=>{m.dias=DIA.map(()=>{const p=m.cap*(0.6+rnd()*0.4),f=p*(0.55+rnd()*0.5);return {p,f:Math.min(f,p),real:f*(1+rnd()*0.25)}})});
+// ---------- utilidades ----------
+const $=s=>document.querySelector(s),f1=v=>v.toLocaleString("pt-BR",{maximumFractionDigits:1,minimumFractionDigits:1}),pc=v=>Math.round(v*100)+"%";
+const cor=r=>r>=.95?"var(--ok)":r>=.85?"var(--wa)":"var(--bad)",pill=r=>`<span class="pill ${r>=.95?"g":r>=.85?"w":"r"}">${pc(r)}</span>`;
+const S={tab:"geral",lid:"",bu:"",mes:0};
+const doLid=m=>!S.lid||m.lider===S.lid||m.lider2===S.lid;
+const turno=m=>S.lid&&m.lider2===S.lid?2:S.lid&&m.lider2?1:0;
+const escopo=()=>M.filter(m=>doLid(m)&&(!S.bu||m.bu===S.bu));
+// ---------- telas ----------
+const TABS={geral:"Visão geral",carga:"Carga máquina",prog:"Programado × Realizado",ia:"Assistente"};
+function geral(){const ms=escopo();let P=0,F=0,R=0;ms.forEach(m=>m.dias.forEach(d=>{P+=d.p;F+=d.f;R+=d.real}));
+  const dia=DIA.map((_,i)=>{let p=0,f=0;ms.forEach(m=>{p+=m.dias[i].p;f+=m.dias[i].f});return f/p});
+  const W=760,H=200,x=i=>40+i*(W-60)/(HOJE-1),y=v=>H-24-(v-.4)/.65*(H-40);
+  const pts=dia.map((v,i)=>`${x(i)},${y(v)}`).join(" ");
+  return `<h2>Visão geral do mês</h2><p class="sub">Cumprimento do programa: horas programadas que foram feitas no mesmo dia, medidas pelas peças boas.</p>
+  <div class="kpis"><div class="k"><small>Cumprimento</small><b style="color:${cor(F/P)}">${pc(F/P)}</b><span>meta 95%</span></div>
+  <div class="k"><small>Programado</small><b>${f1(P)} h</b><span>${ms.length} máquinas</span></div><div class="k"><small>Feito do programa</small><b>${f1(F)} h</b><span>peças boas ÷ programadas</span></div>
+  <div class="k"><small>Apontado</small><b>${f1(R)} h</b><span>${f1(R-F)} h fora do programa</span></div></div>
+  <div class="card"><h3>Cumprimento por dia</h3><p>Linha tracejada = meta de 95%.</p><svg viewBox="0 0 ${W} ${H}" width="100%">
+  ${[.5,.75,1].map(v=>`<line x1="40" x2="${W-20}" y1="${y(v)}" y2="${y(v)}" stroke="var(--ln)"/><text x="4" y="${y(v)+4}">${pc(v)}</text>`).join("")}
+  <line x1="40" x2="${W-20}" y1="${y(.95)}" y2="${y(.95)}" stroke="var(--ok)" stroke-dasharray="5 4"/>
+  <polyline points="${pts}" fill="none" stroke="var(--ac)" stroke-width="2.5"/>${dia.map((v,i)=>`<circle cx="${x(i)}" cy="${y(v)}" r="3.5" fill="${cor(v)}"><title>dia ${i+1}: ${pc(v)}</title></circle><text x="${x(i)-6}" y="${H-6}">${i+1}</text>`).join("")}</svg></div>
+  <div class="card"><h3>Por B.U</h3><table><tr><th>B.U</th><th class="n">Programado</th><th class="n">Feito</th><th class="n">Cumprimento</th></tr>${BUS.map(b=>{let p=0,f=0;ms.filter(m=>m.bu===b).forEach(m=>m.dias.forEach(d=>{p+=d.p;f+=d.f}));return p?`<tr><td>${b}</td><td class="n">${f1(p)} h</td><td class="n">${f1(f)} h</td><td class="n">${pill(f/p)}</td></tr>`:""}).join("")}</table></div>`}
+function carga(){const ms=escopo(),i=S.mes;const dem=ms.reduce((t,m)=>t+m.carga[i],0),cap=ms.reduce((t,m)=>t+m.cap*DIAS[i],0);
+  const acima=ms.filter(m=>m.carga[i]>m.cap*DIAS[i]).length;
+  const L=ms.map(m=>({m,o:m.carga[i]/(m.cap*DIAS[i])})).sort((a,b)=>b.o-a.o);
+  return `<h2>Carga máquina</h2><p class="sub">Demanda (OPs firmes + projeção do MRP) ÷ capacidade (h/dia × dias úteis do mês).</p>
+  <div class="chips">${MESES.map((x,k)=>`<button data-mes="${k}" class="${k===i?"on":""}">${x} · ${DIAS[k]} dias</button>`).join("")}</div>
+  <div class="kpis"><div class="k"><small>Ocupação</small><b style="color:${dem>cap?"var(--bad)":"var(--ink)"}">${pc(dem/cap)}</b><span>${f1(dem)} h de ${f1(cap)} h</span></div>
+  <div class="k"><small>Acima de 100%</small><b>${acima}</b><span>de ${ms.length} máquinas</span></div><div class="k"><small>Por dia útil</small><b>${f1(dem/DIAS[i])} h</b><span>para ${f1(cap/DIAS[i])} h/dia</span></div></div>
+  <div class="card"><h3>Máquinas, da mais carregada para a menos</h3><p>A barra mostra a ocupação, e o traço marca 100%.</p>
+  <table><tr><th>Máquina</th><th>B.U</th><th style="width:45%">Ocupação</th><th class="n">Demanda</th></tr>${L.map(({m,o})=>`<tr><td>${m.id}</td><td>${m.bu}</td>
+  <td><div class="bar" style="position:relative"><i style="width:${Math.min(o,1.5)/1.5*100}%;background:${o>1.3?"var(--bad)":o>1?"var(--wa)":o>.85?"var(--ac)":"#3b4a6b"}"></i><em style="position:absolute;left:${100/1.5}%;top:-3px;height:14px;border-left:2px solid var(--ink2)"></em></div></td>
+  <td class="n">${f1(m.carga[i])} h · ${pc(o)}</td></tr>`).join("")}</table></div>`}
+function prog(){const ms=escopo().slice(0,10),d=HOJE-1;
+  const bl=m=>{let h=6,out="";const fim=turno(m)===2?24:turno(m)===1?14.83:(m.cap>8?24:15);if(turno(m)===2)h=14.83;
+    while(h<fim-0.5){const dur=0.8+rnd()*2.4,e=Math.min(h+dur,fim);const ok=rnd();out+=`<i class="p" style="left:${h/24*100}%;width:${(e-h)/24*100}%"></i>`;
+      if(ok>.25){const a0=h+rnd()*.3,a1=Math.min(a0+(e-h)*(ok>.6?1:.5),24);out+=`<i class="a" style="left:${a0/24*100}%;width:${(a1-a0)/24*100}%"></i>`}h=e+rnd()*0.4}return out};
+  seed=7;
+  return `<h2>Programado × Realizado · dia ${d+1}</h2><p class="sub">${S.lid?`Líder ${S.lid}: nas máquinas com dois turnos aparecem só as OPs do turno dele (2º turno a partir das 14:50).`:"Escolha um líder no topo para ver só as máquinas e o turno dele."}</p>
+  <div class="card">${ms.map(m=>`<div class="row"><div><b>${m.id}</b><small>${m.bu} · líder ${m.lider}${m.lider2?` / ${m.lider2} (2º turno)`:""}${turno(m)?` · ${turno(m)}º turno`:""}</small></div><div class="trk">${bl(m)}</div></div>`).join("")}
+  <div class="legend"><span><i style="background:var(--prog)"></i>Programado (sequenciamento)</span><span><i style="background:var(--real)"></i>Apontado</span><span>Cada coluna = 1 hora</span></div></div>`}
+function ia(){return `<h2>Assistente</h2><p class="sub">No app real, um modelo de IA responde com os dados do indicador. Aqui a resposta é montada no navegador a partir dos dados fictícios.</p>
+  <div class="card"><div class="ia"><input id="q" placeholder="Ex.: qual máquina está mais carregada em dezembro?"><button id="go">Perguntar</button></div><div class="resp" id="resp">Pergunte sobre carga, cumprimento ou máquinas.</div></div>`}
+function responde(q){q=q.toLowerCase();const ms=escopo();const mi=MESES.findIndex(x=>q.includes(x));const i=mi<0?0:mi;
+  if(/carreg|carga|ocupa/.test(q)){const t=ms.map(m=>({m,o:m.carga[i]/(m.cap*DIAS[i])})).sort((a,b)=>b.o-a.o).slice(0,3);
+    return `Em ${MESES[i]}, as máquinas mais carregadas são:\n`+t.map((x,k)=>`${k+1}. ${x.m.id} (${x.m.bu}): ${pc(x.o)} da capacidade`).join("\n")}
+  if(/pior|cumpr|ader|atras/.test(q)){const t=ms.map(m=>{let p=0,f=0;m.dias.forEach(d=>{p+=d.p;f+=d.f});return {m,r:f/p}}).sort((a,b)=>a.r-b.r).slice(0,3);
+    return "Menor cumprimento do programa no mês:\n"+t.map((x,k)=>`${k+1}. ${x.m.id}: ${pc(x.r)}`).join("\n")}
+  return "Nos dados fictícios desta demo eu respondo sobre carga por mês e cumprimento do programa. Tente: “qual máquina está mais carregada em janeiro?”"}
+// ---------- montagem ----------
+const LIDS=[...new Set(M.flatMap(m=>[m.lider,m.lider2]).filter(Boolean))].sort();
+$("#fLid").innerHTML=`<option value="">Todos</option>`+LIDS.map(l=>`<option>${l}</option>`).join("");
+$("#fLid").onchange=e=>{S.lid=e.target.value;render()};
+$("#nav").innerHTML=Object.entries(TABS).map(([k,t])=>`<button data-t="${k}">${t}</button>`).join("");
+$("#nav").onclick=e=>{const b=e.target.closest("[data-t]");if(b){S.tab=b.dataset.t;render()}};
+function render(){[...$("#nav").children].forEach(b=>b.classList.toggle("on",b.dataset.t===S.tab));
+  $("#view").innerHTML={geral,carga,prog,ia}[S.tab]();
+  $("#view").querySelectorAll("[data-mes]").forEach(b=>b.onclick=()=>{S.mes=+b.dataset.mes;render()});
+  if(S.tab==="ia"){const go=()=>$("#resp").textContent=responde($("#q").value);$("#go").onclick=go;$("#q").onkeydown=e=>{if(e.key==="Enter")go()}}}
+render();
+</script>
+</body>
+</html>
